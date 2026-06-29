@@ -246,15 +246,27 @@ def parse_list(value):
     return [value]
 
 
+def hours_between(start_time, end_time):
+    """Berekent het aantal uren tussen starttijd en eindtijd (HH:MM), met
+    ondersteuning voor evenementen die over middernacht heen lopen."""
+    start_min = parse_time_to_minutes(start_time)
+    end_min = parse_time_to_minutes(end_time)
+    diff = end_min - start_min
+    if diff <= 0:
+        diff += 24 * 60
+    return round(diff / 60.0, 2)
+
+
 def compute_breakdown(lead):
     """Hoofdofunctie: neemt het lead-object (zoals nu naar Zapier gaat) en
     geeft een platte dict terug met alle waarden die de offerte-PDF nodig
     heeft."""
 
     guests = int(float(lead.get("guests") or 0))
-    duration_hours = float(lead.get("durationHours") or 0)
     start_time = lead.get("startTime") or "18:00"
     end_time = lead.get("endTime") or "00:00"
+    duration_hours = float(lead.get("durationHours") or 0) or hours_between(start_time, end_time)
+
     drink_id = lead.get("drink") or None
     package = lead.get("package") or None
     has_food = package == "foodbasis"
