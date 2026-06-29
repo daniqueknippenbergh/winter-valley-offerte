@@ -213,21 +213,54 @@ def format_date_nl(iso_date):
     return "%d %s %s" % (int(d), DUTCH_MONTHS[int(m) - 1], y)
 
 
+def parse_bool(value):
+    """Robuuste boolean-check. Belangrijk omdat Zapier/formulieren een
+    boolean soms als de TEKST 'false' doorgeven -- en bool('false') is in
+    Python gewoon True (niet-lege string), dus dat los je hiermee op."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in ("true", "1", "yes", "ja", "on")
+
+
+def parse_list(value):
+    """Maakt van een eventuele JSON-tekst (bv. '["a","b"]', zoals de
+    funnel arrays nu doorstuurt naar Zapier) weer een echte Python-lijst.
+    Werkt ook als er al een echte lijst binnenkomt."""
+    if not value:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            import json
+            parsed = json.loads(text)
+            return parsed if isinstance(parsed, list) else [parsed]
+        except (ValueError, TypeError):
+            # Geen geldige JSON -- behandel als komma-gescheiden tekst
+            return [v.strip() for v in text.split(",") if v.strip()]
+    return [value]
+
+
 def compute_breakdown(lead):
     """Hoofdofunctie: neemt het lead-object (zoals nu naar Zapier gaat) en
     geeft een platte dict terug met alle waarden die de offerte-PDF nodig
     heeft."""
 
-    guests = int(lead.get("guests") or 0)
+    guests = int(float(lead.get("guests") or 0))
     duration_hours = float(lead.get("durationHours") or 0)
     start_time = lead.get("startTime") or "18:00"
     end_time = lead.get("endTime") or "00:00"
-    drink_id = lead.get("drink")
-    package = lead.get("package")
+    drink_id = lead.get("drink") or None
+    package = lead.get("package") or None
     has_food = package == "foodbasis"
-    drink_addons = lead.get("drinkAddons") or []
-    addons = lead.get("addons") or []
-    no_service = bool(lead.get("noService"))
+    drink_addons = parse_list(lead.get("drinkAddons"))
+    addons = parse_list(lead.get("addons"))
+    no_service = parse_bool(lead.get("noService"))
 
     room = assign_room(guests)
     room_price = room["price"] if room else 0.0
