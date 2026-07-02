@@ -121,7 +121,14 @@ def get_drink_price_per_person(drink_id, hours):
         return 0.0
     rounded_hours = round(hours * 2) / 2
     table = DRINK_PRICE_PER_PERSON_PER_HOUR.get(drink_id, {})
-    return table.get(rounded_hours, 0.0)
+    if rounded_hours in table:
+        return table[rounded_hours]
+    # Duur valt buiten de tabel (bv. >8 uur): gebruik het hoogste beschikbare tarief
+    if table:
+        max_hours = max(table.keys())
+        if rounded_hours > max_hours:
+            return table[max_hours]
+    return 0.0
 
 
 def get_discount_tier(guests):
@@ -307,8 +314,16 @@ def compute_breakdown(lead):
     garderobe_pp = next(i["price"] for i in OTHER_COSTS_PER_PERSON if i["name"] == "Bemande garderobe")
     garderobe_total = round2(garderobe_pp * guests)
 
-    event_manager_total = round2(65 * duration_hours + 195)
-    fb_manager_total = round2(65 * duration_hours + 195)
+    # Event manager en F&B manager: 2 uur voor aanvang, 1 uur na einde
+    manager_start_min = parse_time_to_minutes(start_time) - 120
+    manager_end_min = parse_time_to_minutes(end_time) + 60
+    manager_tijd = "%s - %s" % (
+        minutes_to_time(manager_start_min),
+        minutes_to_time(manager_end_min),
+    )
+    manager_hours = duration_hours + 3  # 2u voor + 1u na
+    event_manager_total = round2(65 * manager_hours + 0)
+    fb_manager_total = round2(65 * manager_hours + 0)
 
     sanitair_included = guests >= SANITAIR_MIN_GUESTS
     sanitair_total = round2(SANITAIR_PRICE_PER_UUR * duration_hours) if sanitair_included else 0.0
@@ -334,6 +349,7 @@ def compute_breakdown(lead):
         "opdrachtgever": (lead.get("firstName", "") + " " + lead.get("lastName", "")).strip(),
         "datum": format_date_nl(lead.get("date")),
         "tijd": "%s - %s" % (start_time, end_time),
+        "manager_tijd": manager_tijd,
         "aantal_gasten": guests,
         "schedule": schedule,
 
