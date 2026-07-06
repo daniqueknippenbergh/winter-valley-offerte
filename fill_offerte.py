@@ -238,15 +238,23 @@ def build_page17_overlay(data):
     cover_rect(c, 330.5, 165.7, 357.0, 177.0, YELLOW_BG, pad=0)
     cover_rect(c, 86.5, 186.0, 503.0, 258.0, YELLOW_BG, pad=0)
 
-    # Event manager: stuk, nieuwe tijd, €-teken col2, totaalprijs
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+
+    # Event manager: stuk, tijd + notitje op dezelfde regel in donkere kleur
     draw_text(c, 86.5, 206.4, "1", size=SZ, font=F)
-    draw_text(c, 118.6, 206.4, "Event manager | " + data["manager_tijd"], size=SZ, font=F)
+    main1 = "Event manager | " + data["manager_tijd"]
+    draw_text(c, 118.6, 206.4, main1, size=SZ, font=F)
+    note_x1 = 118.6 + stringWidth(main1, FONT_BOLD, SZ) + 5
+    draw_text(c, note_x1, 206.4, "(2 uur vooraf en 1 uur na einde)", size=8.0, font=FONT, color=INK)
     draw_text(c, EUR2, 206.4, "\u20ac", size=SZ, font=F)
     draw_text_right(c, PRICE_COL2_RIGHT, 206.4, format_price(data["event_manager_total"]), size=SZ, font=F)
 
     # F&B manager
     draw_text(c, 86.5, 222.9, "1", size=SZ, font=F)
-    draw_text(c, 118.6, 222.9, "F\u0026B manager | " + data["manager_tijd"], size=SZ, font=F)
+    main2 = "F\u0026B manager | " + data["manager_tijd"]
+    draw_text(c, 118.6, 222.9, main2, size=SZ, font=F)
+    note_x2 = 118.6 + stringWidth(main2, FONT_BOLD, SZ) + 5
+    draw_text(c, note_x2, 222.9, "(2 uur vooraf en 1 uur na einde)", size=8.0, font=FONT, color=INK)
     draw_text(c, EUR2, 222.9, "\u20ac", size=SZ, font=F)
     draw_text_right(c, PRICE_COL2_RIGHT, 222.9, format_price(data["fb_manager_total"]), size=SZ, font=F)
 
@@ -286,31 +294,40 @@ def build_page17_overlay(data):
 
     # === TOTAAL ===
     # Lijn op y=493.5 -- NIET afdekken
-    # Totaal-labels zijn originele Canva-font; afdekken en herdrukken in Helvetica-Bold
-    # zodat het lettertype overeenkomt met mijn getallen.
-    # Labels liggen BOVEN de lijn (y=472.4-483.4): apart afdekken
-    cover_rect(c, 113.6, 472.4, 450.0, 484.4, YELLOW_BG, pad=0)
-    draw_text(c, 119.3, 483.4, "Omschrijving", size=SZ, font=F)
+    # Totaal-labels: volledig afdekken en uitlijnen met de lijn (x0=91.4)
+    cover_rect(c, 86.5, 470.4, 503.0, 484.4, YELLOW_BG, pad=0)
+    draw_text(c, 93.0, 483.4, "Omschrijving", size=SZ, font=F)
     draw_text(c, 420.5, 483.4, "Prijs", size=SZ, font=F)
 
-    # Rijen ONDER de lijn (y=504.3-564.8): afdekken en herdrukken
-    cover_rect(c, 113.6, 503.3, 450.0, 565.8, YELLOW_BG, pad=0)
-    draw_text(c, 114.6, 515.3, "Totaalprijs exclusief btw", size=SZ, font=F)
-    draw_text(c, 114.6, 531.8, "btw laag 9 %", size=SZ, font=F)
-    draw_text(c, 114.6, 548.3, "btw hoog 21 %", size=SZ, font=F)
-    draw_text(c, 114.6, 564.8, "Totaalprijs inclusief btw", size=SZ, font=F)
+    # Rijen ONDER de lijn: afdekken en herdrukken
+    cover_rect(c, 86.5, 495.3, 503.0, 582.0, YELLOW_BG, pad=0)
 
-    # €-tekens en getallen
-    EUR2_TOT = 415.4  # €-positie in totaal-sectie (iets anders dan kosten-tabel)
+    EUR2_TOT = 415.4
     PCOL2_TOT = 501.3
-    draw_text(c, EUR2_TOT, 515.3, "\u20ac", size=SZ, font=F)
-    draw_text_right(c, PCOL2_TOT, 515.3, format_price(data["subtotal_excl_btw"]), size=SZ, font=F)
-    draw_text(c, EUR2_TOT, 531.8, "\u20ac", size=SZ, font=F)
-    draw_text_right(c, PCOL2_TOT, 531.8, format_price(data["btw_laag"]), size=SZ, font=F)
-    draw_text(c, EUR2_TOT, 548.3, "\u20ac", size=SZ, font=F)
-    draw_text_right(c, PCOL2_TOT, 548.3, format_price(data["btw_hoog"]), size=SZ, font=F)
-    draw_text(c, EUR2_TOT, 564.8, "\u20ac", size=SZ, font=F)
-    draw_text_right(c, PCOL2_TOT, 564.8, format_price(data["totaal_incl_btw"]), size=SZ, font=F)
+
+    # Totaalprijs excl. btw
+    draw_text(c, 93.0, 510.3, "Totaalprijs exclusief btw", size=SZ, font=F)
+    draw_text(c, EUR2_TOT, 510.3, "\u20ac", size=SZ, font=F)
+    draw_text_right(c, PCOL2_TOT, 510.3, format_price(data["subtotal_excl_btw"]), size=SZ, font=F)
+
+    # BTW-regels
+    draw_text(c, 93.0, 524.3, "btw laag 9 %", size=SZ, font=F)
+    draw_text(c, EUR2_TOT, 524.3, "\u20ac", size=SZ, font=F)
+    draw_text_right(c, PCOL2_TOT, 524.3, format_price(data["btw_laag"]), size=SZ, font=F)
+
+    draw_text(c, 93.0, 537.3, "btw hoog 21 %", size=SZ, font=F)
+    draw_text(c, EUR2_TOT, 537.3, "\u20ac", size=SZ, font=F)
+    draw_text_right(c, PCOL2_TOT, 537.3, format_price(data["btw_hoog"]), size=SZ, font=F)
+
+    # Totaalprijs incl. btw
+    draw_text(c, 93.0, 551.3, "Totaalprijs inclusief btw", size=SZ, font=F)
+    draw_text(c, EUR2_TOT, 551.3, "\u20ac", size=SZ, font=F)
+    draw_text_right(c, PCOL2_TOT, 551.3, format_price(data["totaal_incl_btw"]), size=SZ, font=F)
+
+    # Prijs per persoon excl. btw -- onderaan
+    draw_text(c, 93.0, 566.3, "Prijs per persoon excl. btw", size=SZ, font=F)
+    draw_text(c, EUR2_TOT, 566.3, "\u20ac", size=SZ, font=F)
+    draw_text_right(c, PCOL2_TOT, 566.3, format_price(data["prijs_pp_excl_btw"]), size=SZ, font=F)
 
     c.showPage()
     c.save()
@@ -332,11 +349,12 @@ def generate_offerte(lead, template_path, output_path):
 
 def generate_offerte_bytes(lead, template_path):
     """Zelfde als generate_offerte(), maar geeft de PDF terug als bytes in
-    het geheugen (geen bestand op schijf) -- handig voor een webservice."""
+    het geheugen (geen bestand op schijf) -- handig voor een webservice.
+    Alleen pagina 3 (gegevens/programma), 16 en 17 (kostenoverzicht)
+    worden opgenomen in de output."""
     data = compute_breakdown(lead)
 
     reader = PdfReader(template_path)
-    writer = PdfWriter()
 
     overlays = {
         2: build_page3_overlay(data),
@@ -344,7 +362,12 @@ def generate_offerte_bytes(lead, template_path):
         16: build_page17_overlay(data),
     }
 
-    for i, page in enumerate(reader.pages):
+    # Alleen de drie relevante pagina's meenemen (0-indexed: 2, 15, 16)
+    pages_to_include = [2, 15, 16]
+
+    writer = PdfWriter()
+    for i in pages_to_include:
+        page = reader.pages[i]
         if i in overlays:
             page.merge_page(overlays[i])
         writer.add_page(page)
