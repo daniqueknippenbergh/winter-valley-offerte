@@ -53,7 +53,7 @@ def brochure():
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
-        headers={"Content-Disposition": 'attachment; filename="WinterValley_Brochure.pdf"'},
+        headers={"Content-Disposition": 'attachment; filename="Brochure Winter Valley.pdf"'},
     )
 
 
@@ -74,9 +74,7 @@ def maak_offerte():
 
     naam = (lead.get("firstName", "") + "_" + lead.get("lastName", "")).strip("_") or "Klant"
     veilige_naam = "".join(ch for ch in naam if ch.isalnum() or ch in ("_", "-")) or "Klant"
-    bestandsnaam = "Offerte_Winter_Valley_%s_%s.pdf" % (
-        veilige_naam, datetime.now().strftime("%Y%m%d")
-    )
+    bestandsnaam = "Offerte Winter Valley.pdf"
 
     return Response(
         pdf_bytes,
