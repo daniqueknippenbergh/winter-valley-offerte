@@ -382,6 +382,7 @@ def compute_breakdown(lead):
         "btw_laag": btw_laag,
         "btw_hoog": btw_hoog,
         "totaal_incl_btw": totaal_incl_btw,
+        "prijs_pp_excl_btw": round2(subtotal_excl_btw / guests) if guests else 0.0,
     }
 
 
