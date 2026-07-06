@@ -31,6 +31,7 @@ from fill_offerte import generate_offerte_bytes
 app = Flask(__name__)
 
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "Offerte_Template_-_Winter_Valley_2026.pdf")
+BROCHURE_PATH = os.path.join(os.path.dirname(__file__), "brochure.pdf")
 API_KEY = os.environ.get("OFFERTE_API_KEY")  # None = geen check
 
 
@@ -39,6 +40,21 @@ def health():
     """Simpel check-adres: als je dit in de browser opent en 'OK' ziet,
     draait de service. Handig om na het deployen te testen."""
     return "OK - offerte-service draait"
+
+
+@app.get("/brochure")
+def brochure():
+    """Serveert de vaste Winter Valley brochure als PDF-bestand,
+    zodat Zapier hem als bijlage kan meesturen naast de offerte."""
+    if not os.path.exists(BROCHURE_PATH):
+        return jsonify({"error": "Brochure niet gevonden"}), 404
+    with open(BROCHURE_PATH, "rb") as f:
+        pdf_bytes = f.read()
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="WinterValley_Brochure.pdf"'},
+    )
 
 
 @app.post("/maak-offerte")
