@@ -76,15 +76,10 @@ def build_page3_overlay(data):
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
     SZ = 11
-    F = FONT_BOLD
+    F = FONT
 
     # --- Gegevens-blok (gele kaart) ---
-    # Alle waarden afdekken en herdrukken in hetzelfde lettertype (Helvetica-Bold)
-    # zodat opdrachtgever, datum, tijd, locatie, gasten en contactpersoon
-    # allemaal hetzelfde uiterlijk hebben.
-
-    cover_rect(c, 245.0, 271.7, 420.0, 282.6, YELLOW_BG)
-    draw_text(c, 245.0, 282.6, data["opdrachtgever"], size=SZ, font=F)
+    # Waarden afdekken en herdrukken
 
     cover_rect(c, 245.0, 288.9, 420.0, 299.9, YELLOW_BG)
     draw_text(c, 245.0, 299.9, data["datum"], size=SZ, font=F)
@@ -129,7 +124,7 @@ def build_page16_overlay(data):
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
     guests = data["aantal_gasten"]
     SZ = 10.5
-    F = FONT_BOLD
+    F = FONT
     EUR1 = 331.5
     EUR2 = 419.4
 
@@ -229,7 +224,7 @@ def build_page17_overlay(data):
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
     SZ = 10.5
-    F = FONT_BOLD
+    F = FONT
     EUR2 = 419.4   # x-positie €-teken tweede prijskolom
 
     # === PERSONEEL ===
@@ -324,10 +319,26 @@ def build_page17_overlay(data):
     draw_text(c, EUR2_TOT, 551.3, "\u20ac", size=SZ, font=F)
     draw_text_right(c, PCOL2_TOT, 551.3, format_price(data["totaal_incl_btw"]), size=SZ, font=F)
 
-    # Prijs per persoon excl. btw -- onderaan
-    draw_text(c, 93.0, 566.3, "Prijs per persoon excl. btw", size=SZ, font=F)
-    draw_text(c, EUR2_TOT, 566.3, "\u20ac", size=SZ, font=F)
-    draw_text_right(c, PCOL2_TOT, 566.3, format_price(data["prijs_pp_excl_btw"]), size=SZ, font=F)
+    # Prijs per persoon: niet meer in de lijst maar als roze vakje onderaan
+    # 2 regels ruimte laten en dan een roze afgerond vak tekenen
+    box_x = 160.0
+    box_w = 280.0
+    box_top_pdf = 585.0
+    box_h = 32.0
+    box_bot_pdf = box_top_pdf + box_h
+
+    cover_rect(c, 86.5, 581.0, 503.0, 635.0, YELLOW_BG, pad=0)
+
+    box_rl_y = PAGE_H - box_bot_pdf
+    c.setFillColor(PINK_BG)
+    c.roundRect(box_x, box_rl_y, box_w, box_h, radius=9, stroke=0, fill=1)
+
+    prijs_tekst = "Totaal: \u20ac " + format_price(data["prijs_pp_excl_btw"]) + " per persoon"
+    c.setFont(FONT_BOLD, 13)
+    c.setFillColor(INK)
+    tekst_x = box_x + box_w / 2
+    tekst_y = PAGE_H - (box_top_pdf + box_h / 2) - 4
+    c.drawCentredString(tekst_x, tekst_y, prijs_tekst)
 
     c.showPage()
     c.save()
