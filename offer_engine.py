@@ -27,9 +27,7 @@ from datetime import datetime, timedelta
 # ---------------------------------------------------------------------------
 
 ROOMS = [
-    {"id": "wintertuin",        "name": "Wintertuin",     "min": 50,  "max": 150,  "price": 1750},
-    {"id": "wunderbar",         "name": "Wunderbar",      "min": 151, "max": 300,  "price": 2500},
-    {"id": "mainstage",         "name": "Main stage",     "min": 301, "max": 599,  "price": 7500},
+    {"id": "mainstage",         "name": "Main stage",     "min": 300, "max": 599,  "price": 7500},
     {"id": "heelwintervalley",  "name": "Winter Valley",  "min": 600, "max": 3000, "price": 12500},
 ]
 
